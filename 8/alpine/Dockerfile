@@ -29,6 +29,7 @@ ARG gid=1000
 ARG JENKINS_AGENT_HOME=/home/${user}
 
 ENV JENKINS_AGENT_HOME ${JENKINS_AGENT_HOME}
+ENV JAVA_HOME /opt/java/openjdk/
 
 RUN mkdir -p "${JENKINS_AGENT_HOME}" \
     && addgroup -g "${gid}" "${group}" \
@@ -54,7 +55,7 @@ RUN sed -i /etc/ssh/sshd_config \
 VOLUME "${JENKINS_AGENT_HOME}" "/tmp" "/run" "/var/run"
 WORKDIR "${JENKINS_AGENT_HOME}"
 
-RUN echo "export PATH=${PATH}" >> /etc/profile
+RUN echo "export PATH=${PATH}:$JAVA_HOME/bin/" >> /etc/profile
 COPY setup-sshd /usr/local/bin/setup-sshd
 
 EXPOSE 22
