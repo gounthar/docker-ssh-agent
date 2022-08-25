@@ -29,8 +29,8 @@ FROM mcr.microsoft.com/powershell:${POWERSHELL_VERSION}nanoserver-1809
 
 SHELL ["pwsh.exe", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
-ARG JAVA_VERSION=11.0.15+10
-ARG JAVA_SHA256=3e7da701aa92e441418299714f0ed6db10c3bb1e2db625c35a2c2cd9cc619731
+ARG JAVA_VERSION=11.0.16.1+1
+ARG JAVA_SHA256=446196723c29ac6209c53b662fa73f1f555a01c08d75ef5b9155b0c29f8a82f1
 ARG JAVA_HOME=C:\jdk-${JAVA_VERSION}
 
 USER ContainerAdministrator
@@ -44,10 +44,10 @@ RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tl
     Expand-Archive openjdk.zip -DestinationPath C:/ ; `
     Remove-Item -Path openjdk.zip
 
-ARG GIT_VERSION=2.36.0
-ARG GIT_PATCH_VERSION=1
+ARG GIT_VERSION=2.37.2
+ARG GIT_PATCH_VERSION=2
 RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 ; `
-    $url = $('https://github.com/git-for-windows/git/releases/download/v{0}.windows.{1}/MinGit-{0}-64-bit.zip' -f $env:GIT_VERSION, $env:GIT_PATCH_VERSION) ; `
+    $url = $('https://github.com/git-for-windows/git/releases/download/v{0}.windows.{1}/MinGit-{0}.{1}-64-bit.zip' -f $env:GIT_VERSION, $env:GIT_PATCH_VERSION) ; `
     Write-Host "Retrieving $url..." ; `
     Invoke-WebRequest $url -OutFile 'mingit.zip' -UseBasicParsing ; `
     Expand-Archive mingit.zip -DestinationPath c:\mingit ; `
