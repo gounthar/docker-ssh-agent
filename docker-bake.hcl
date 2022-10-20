@@ -23,10 +23,6 @@ group "linux-s390x" {
   ]
 }
 
-group "linux-ppc64le" {
-  targets = []
-}
-
 variable "REGISTRY" {
   default = "docker.io"
 }
