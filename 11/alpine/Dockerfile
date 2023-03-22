@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-FROM eclipse-temurin:11.0.16.1_1-jdk-alpine
+FROM eclipse-temurin:11.0.17_8-jdk-alpine
 
 ARG user=jenkins
 ARG group=jenkins
@@ -28,20 +28,29 @@ ARG uid=1000
 ARG gid=1000
 ARG JENKINS_AGENT_HOME=/home/${user}
 
-ENV JENKINS_AGENT_HOME ${JENKINS_AGENT_HOME}
+ENV JENKINS_AGENT_HOME=${JENKINS_AGENT_HOME}
 
-RUN mkdir -p "${JENKINS_AGENT_HOME}/.ssh/" \
-    && addgroup -g "${gid}" "${group}" \
-# Set the home directory (h), set user and group id (u, G), set the shell, don't ask for password (D)
+ARG AGENT_WORKDIR="${JENKINS_AGENT_HOME}"/agent
+# Persist agent workdir path through an environment variable for people extending the image
+ENV AGENT_WORKDIR=${AGENT_WORKDIR}
+
+RUN addgroup -g "${gid}" "${group}" \
+    # Set the home directory (h), set user and group id (u, G), set the shell, don't ask for password (D)
     && adduser -h "${JENKINS_AGENT_HOME}" -u "${uid}" -G "${group}" -s /bin/bash -D "${user}" \
-# Unblock user
-    && passwd -u "${user}"
+    # Unblock user
+    && passwd -u "${user}" \
+    # Prepare subdirectories
+    && mkdir -p "${JENKINS_AGENT_HOME}/.ssh/" "${JENKINS_AGENT_HOME}/.jenkins/" "${AGENT_WORKDIR}" \
+    && chown -R "${uid}":"${gid}" "${JENKINS_AGENT_HOME}" "${AGENT_WORKDIR}"
+
 
 RUN apk add --no-cache \
     bash \
-    openssh \
     git-lfs \
-    netcat-openbsd
+    less \
+    netcat-openbsd \
+    openssh \
+    patch
 
 # setup SSH server
 RUN sed -i /etc/ssh/sshd_config \
@@ -52,7 +61,8 @@ RUN sed -i /etc/ssh/sshd_config \
         -e 's/#PermitUserEnvironment.*/PermitUserEnvironment yes/' \
     && mkdir /var/run/sshd
 
-VOLUME "${JENKINS_AGENT_HOME}" "/tmp" "/run" "/var/run"
+# VOLUME directive must happen after setting up permissions and content
+VOLUME "${AGENT_WORKDIR}" "${JENKINS_AGENT_HOME}"/.jenkins "/tmp" "/run" "/var/run"
 WORKDIR "${JENKINS_AGENT_HOME}"
 
 # Alpine's ssh doesn't use $PATH defined in /etc/environment, so we define `$PATH` in `~/.ssh/environment`

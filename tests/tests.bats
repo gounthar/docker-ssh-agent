@@ -187,3 +187,35 @@ DOCKER_PLUGIN_DEFAULT_ARG="/usr/sbin/sshd -D -p 22"
   run docker run --entrypoint sh --rm "${SUT_IMAGE}" -c 'locale charmap'
   assert_equal "${output}" "UTF-8"
 }
+
+@test "[${SUT_IMAGE}] the default 'jenkins' user is allowed to write in the default agent directory" {
+  run docker run --user=jenkins --entrypoint='' --rm "${SUT_IMAGE}" sh -c 'touch "${AGENT_WORKDIR}"/test.txt'
+  assert_success
+}
+
+@test "[${SUT_IMAGE}] image has required tools installed and present in the PATH" {
+  local test_container_name=${AGENT_CONTAINER}-bash-java
+  clean_test_container "${test_container_name}"
+  docker run --name="${test_container_name}" --name="${test_container_name}" "${docker_run_opts[@]}" "${PUBLIC_SSH_KEY}"
+
+  run docker exec "${test_container_name}" sh -c "command -v ssh"
+  assert_success
+  run docker exec "${test_container_name}" ssh -V
+  assert_success
+
+  run docker exec "${test_container_name}" sh -c "command -v git"
+  assert_success
+  run docker exec "${test_container_name}" git --version
+  assert_success
+
+  run docker exec "${test_container_name}" sh -c "command -v less"
+  assert_success
+  run docker exec "${test_container_name}" less -V
+  assert_success
+  run docker exec "${test_container_name}" sh -c "command -v patch"
+  assert_success
+  run docker exec "${test_container_name}" patch --version
+  assert_success
+
+  clean_test_container "${test_container_name}"
+}
