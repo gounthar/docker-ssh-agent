@@ -46,7 +46,7 @@ ENV PATH="/opt/jdk-${JAVA_VERSION}/bin:${PATH}"
 RUN case "$(jlink --version 2>&1)" in \
     "17."*) set -- "--compress=2" --add-modules ALL-MODULE-PATH ;; \
     "21."*) set -- "--compress=zip-6" --add-modules ALL-MODULE-PATH ;; \
-    "25"*) set -- "--compress=zip-6" --add-modules java.base,java.logging,java.xml,java.se ;; \
+    "25"*) set -- "--compress=zip-6" --add-modules java.se ;; \
     *) echo "ERROR: unmanaged jlink version pattern" && exit 1 ;; \
   esac; \
   jlink \
