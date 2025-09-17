@@ -43,19 +43,18 @@ RUN apk add --no-cache \
 
 ENV PATH="/opt/jdk-${JAVA_VERSION}/bin:${PATH}"
 
-RUN JLINK_COMMON_OPTS="--strip-java-debug-attributes --no-man-pages --no-header-files --output /javaruntime"; \
-  case "$(jlink --version 2>&1)" in \
-    "17."*) jlink $JLINK_COMMON_OPTS \
-      --compress=2 \
-      --add-modules ALL-MODULE-PATH ;; \
-    "21."*) jlink $JLINK_COMMON_OPTS \
-      --compress=zip-6 \
-      --add-modules ALL-MODULE-PATH ;; \
-    "25"*) jlink $JLINK_COMMON_OPTS \
-      --compress=zip-6 \
-      --add-modules java.base,java.logging,java.xml,java.se ;; \
+RUN case "$(jlink --version 2>&1)" in \
+    "17."*) set -- "--compress=2" --add-modules ALL-MODULE-PATH ;; \
+    "21."*) set -- "--compress=zip-6" --add-modules ALL-MODULE-PATH ;; \
+    "25"*) set -- "--compress=zip-6" --add-modules java.base,java.logging,java.xml,java.se ;; \
     *) echo "ERROR: unmanaged jlink version pattern" && exit 1 ;; \
-  esac
+  esac; \
+  jlink \
+    --strip-java-debug-attributes \
+    "$@" \
+    --no-man-pages \
+    --no-header-files \
+    --output /javaruntime
 
 FROM alpine:"${ALPINE_TAG}" AS build
 
